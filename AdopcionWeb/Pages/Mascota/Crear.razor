@@ -1,0 +1,97 @@
+﻿@page "/CrearMascota"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Crear Mascota</h3>
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%; max-width: 600px;">
+    <RadzenStack>
+        <EditForm Model="mascota" method="post" OnValidSubmit="CrearMascota" enctype="multipart/form-data">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <RadzenFieldset Text="Mascota">
+                <RadzenStack>
+                    <RadzenFormField Text="Nombre" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@mascota.Nombre" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="FechaEncontrado" Variant="Variant.Outlined">
+                        <RadzenDatePicker DateFormat="MM/dd/yyyy" @bind-Value=@mascota.FechaEncontrado ShowCalendarWeek />
+                    </RadzenFormField>
+                    <RadzenFormField Text="FechaPosibleNacimiento" Variant="Variant.Outlined">
+                        <RadzenDatePicker DateFormat="MM/dd/yyyy"  @bind-Value=@mascota.FechaPosibleNacimiento ShowCalendarWeek />
+                    </RadzenFormField>
+                    <RadzenFormField Text="TipoMascota" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="mascota.TipoMascota" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="PosiblesEnfermedades" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@mascota.PosiblesEnfermedades" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Raza" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="mascota.Raza" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Caracteristicas" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@mascota.Caracteristicas" />
+                    </RadzenFormField>
+                    <RadzenText TextStyle="TextStyle.H4"><strong>Foto</strong></RadzenText>
+                    <InputFile OnChange="HandleFileSelected" />
+                    @if (!string.IsNullOrEmpty(selectedFileName))
+                    {
+                        <p>Archivo seleccionado: @selectedFileName</p>
+                    }
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Crear Mascota" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private Mascota mascota = new();
+    private byte[]? photoData;
+    private string? selectedFileName;
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        selectedFileName = file.Name;
+
+        using var stream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(stream);
+        photoData = stream.ToArray();
+    }
+
+    private async Task CrearMascota()
+    {
+        string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "mascotas");
+
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        if (photoData != null && photoData.Length > 0)
+        {
+            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            string extension = Path.GetExtension(selectedFileName);
+            string fileName = $"{mascota.Nombre}_{timestamp}{extension}";
+            string filePath = Path.Combine(folderPath, fileName);
+
+            await File.WriteAllBytesAsync(filePath, photoData);
+
+            mascota.Foto = Path.Combine("mascotas", fileName);
+
+            await db.Mascotas.AddAsync(mascota);
+            await db.SaveChangesAsync();
+
+            // Limpia los campos
+            mascota = new();
+            photoData = null;
+            selectedFileName = "";
+            dialogService.Close(true);
+        }
+        else
+        {
+            Console.WriteLine("No se ha seleccionado ninguna imagen.");
+        }
+    }
+}

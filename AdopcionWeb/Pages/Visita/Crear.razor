@@ -1,0 +1,64 @@
+﻿@page "/CrearVisita"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Crear Visita</h3>
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%; max-width: 600px;">
+    <RadzenStack>
+        <EditForm Model="visita" method="post" OnValidSubmit="CrearVisita">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <!-- Selección de Adopción -->
+            <RadzenFieldset Text="Adopcion">
+                <RadzenStack>
+                    <RadzenFormField Text="Adopcion" Variant="Variant.Outlined">
+                        <InputSelect id="documentId" @bind-Value="@visita.AdopcionId" class="form-control">
+                            <option value="">Seleccionar Adopcion</option>
+                            @if (adopciones is not null)
+                            {
+                                @foreach (var a in adopciones)
+                                {
+                                    <option value="@a?.Id">@a?.Mascota.Nombre - @a?.Persona.Nombre</option>
+                                }
+                            }
+                        </InputSelect>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Fecha de Visita" Variant="Variant.Outlined">
+                        <RadzenDatePicker @bind-Value="visita.FechaVisita" DateFormat="MM/dd/yyyy" Style="width: 100%;" />
+                    </RadzenFormField>
+                    <RadzenTextArea @bind-Value="visita.Descripcion" Placeholder="Descripción de la Visita" Style="width: 100%;" />
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="¿Las condiciones de la mascota son adecuadas?" Component="Esvalido" class="rz-ms-2" />
+                        <RadzenCheckBox @bind-Value=@visita.CondicionesMascota Name="Esvalido" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Crear Visita" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+
+@code {
+    private Visita visita = new();
+    private List<Adopcion> adopciones = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        adopciones = await db.Adopciones
+                             .Include(a => a.Mascota)
+                             .Include(a => a.Persona)
+                             .ToListAsync();
+    }
+
+    private async Task CrearVisita()
+    {
+        if (visita != null)
+        {
+            await db.Visitas.AddAsync(visita);
+            await db.SaveChangesAsync();
+            visita = new();
+        }
+    }
+}

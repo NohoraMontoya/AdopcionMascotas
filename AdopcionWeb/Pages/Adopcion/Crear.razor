@@ -1,0 +1,80 @@
+﻿@page "/CrearAdopcion"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Crear Adopción</h3>
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;max-width: 600px;">
+    <RadzenStack>
+        <EditForm Model="adopcion" method="post" OnValidSubmit="CrearAdopcion">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <RadzenFieldset Text="Adopcion">
+                <RadzenStack>
+                    <RadzenFormField Text="Persona" Variant="Variant.Outlined">
+                        <InputSelect @bind-Value="@adopcion.PersonaId" class="form-control">
+                            <option value="">Seleccionar Persona</option>
+                            @if (_personas is not null)
+                            {
+                                @foreach (var a in _personas)
+                                {
+                                    <option value="@a?.Id">@a?.Nombre - @a?.Apellidos</option>
+                                }
+                            }
+                        </InputSelect>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Mascota" Variant="Variant.Outlined">
+                        <InputSelect @bind-Value="@adopcion.MascotaId" class="form-control">
+                            <option value="">Seleccionar Mascota</option>
+                            @if (_mascotas is not null)
+                            {
+                                @foreach (var a in _mascotas)
+                                {
+                                    <option value="@a?.Id">@a?.Nombre - @a?.Caracteristicas</option>
+                                }
+                            }
+                        </InputSelect>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Fecha de Adopcion" Variant="Variant.Outlined">
+                        <RadzenDatePicker DateFormat="MM/dd/yyyy" @bind-Value=@adopcion.FechaAdopcion ShowCalendarWeek />
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Crear" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private Adopcion adopcion = new();
+
+    int value = 1;
+    IEnumerable<Persona?> _personas;
+    IEnumerable<Mascota?> _mascotas;
+
+
+    private async Task CrearAdopcion()
+    {
+        var mascota = await db.Mascotas.FindAsync(adopcion.MascotaId);
+        if (mascota != null)
+        {
+            mascota.EsAdopcion = true; 
+            db.Mascotas.Update(mascota);
+        }
+
+        adopcion.FechaTerminoSeguimiento = adopcion.FechaAdopcion?.AddMonths(3);
+
+        await db.Adopciones.AddAsync(adopcion);
+        db.SaveChanges();
+        adopcion = new();
+        dialogService.Close(true);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _personas = await db.Personas.Where(x=> x.EsValido == true).ToListAsync();
+        _mascotas = await db.Mascotas.Where(x => x.EsAdopcion == false).ToListAsync();
+    }
+}

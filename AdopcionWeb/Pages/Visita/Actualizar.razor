@@ -1,0 +1,88 @@
+﻿@page "/ActualizarVisita/{Id:long}"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Editar</h3>
+
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <EditForm Model="visitaActualizada" method="post" OnValidSubmit="ActualizarVisita">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <!-- Selección de Adopción -->
+            <RadzenFieldset Text="Adopcion">
+                <RadzenStack>
+                    <RadzenFormField Text="Adopcion" Variant="Variant.Outlined">
+                        <InputSelect id="documentId" @bind-Value="@visitaActualizada.AdopcionId" class="form-control">
+                            <option value="">Seleccionar Adopcion</option>
+                            @if (adopciones is not null)
+                            {
+                                @foreach (var a in adopciones)
+                                {
+                                    <option value="@a?.Id">@a?.Mascota.Nombre - @a?.Persona.Nombre</option>
+                                }
+                            }
+                        </InputSelect>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Fecha de Visita" Variant="Variant.Outlined">
+                        <RadzenDatePicker @bind-Value="visitaActualizada.FechaVisita" DateFormat="MM/dd/yyyy" Style="width: 100%;" />
+                    </RadzenFormField>
+                    <RadzenTextArea @bind-Value="visitaActualizada.Descripcion" Placeholder="Descripción de la Visita" Style="width: 100%;" />
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="¿Las condiciones de la mascota son adecuadas?" Component="Esvalido" class="rz-ms-2" />
+                        <RadzenCheckBox @bind-Value=@visitaActualizada.CondicionesMascota Name="Esvalido" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Actualizar" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+
+
+
+@code {
+    private Visita visitaActualizada = new();
+    private List<Adopcion> adopciones = new();
+
+    [Parameter] public long Id { get; set; }
+
+    private async Task ActualizarVisita()
+    {
+        var visita = await db.Visitas.FindAsync(Id);
+        if (visita != null)
+        {
+            // Actualiza los valores de la persona
+            visita.AdopcionId = visitaActualizada.AdopcionId;
+            visita.FechaVisita = visitaActualizada.FechaVisita;
+            visita.Descripcion = visitaActualizada.Descripcion;
+            visita.CondicionesMascota = visitaActualizada.CondicionesMascota;
+
+            // Marca la entidad como modificada
+            db.Entry(visita).State = EntityState.Modified;
+
+            // Guarda los cambios en la base de datos
+            await db.SaveChangesAsync();
+        }
+
+        // Cierra el diálogo después de actualizar
+        dialogService.Close(true);
+    }
+
+    private async Task RefreshData()
+    {
+        visitaActualizada = await db.Visitas.FindAsync(Id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshData();
+        adopciones = await db.Adopciones
+                             .Include(a => a.Mascota)
+                             .Include(a => a.Persona)
+                             .ToListAsync();
+    }
+}

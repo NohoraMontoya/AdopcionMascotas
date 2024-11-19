@@ -1,0 +1,63 @@
+﻿@page "/VisitasProgramadas"
+@inject AdopcionContext db
+
+<h3>Próximas Visitas</h3>
+
+<RadzenDataGrid Data="@adopciones" TItem="Adopcion" RowSelect="@OnRowSelect" AllowPaging="true" PageSize="10" AllowSorting="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="Adopcion" Property="Persona.Nombre" Title="Persona" />
+        <RadzenDataGridColumn TItem="Adopcion" Property="Mascota.Nombre" Title="Mascota" />
+        <RadzenDataGridColumn TItem="Adopcion" Property="FechaAdopcion" Title="Fecha de Adopción" FormatString="{0:MM/dd/yyyy}" />
+        <RadzenDataGridColumn TItem="Adopcion" Title="Siguiente Visita">
+            <Template Context="adopcion">
+                @if (CalcularSiguienteVisita(adopcion) == DateTime.MinValue)
+                {
+                    <span>No se requieren más visitas</span>
+                }
+                else
+                {
+                    @CalcularSiguienteVisita(adopcion)?.ToString("MM/dd/yyyy")
+                }
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private List<Adopcion> adopciones = new();
+    private List<Visita> visitas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        adopciones = await db.Adopciones
+                             .Include(a => a.Mascota)
+                             .Include(a => a.Persona)
+                             .Include(a => a.Visitas)
+                             .ToListAsync();
+
+        visitas = await db.Visitas.ToListAsync();
+    }
+
+    private DateTime? CalcularSiguienteVisita(Adopcion? adopcion)
+    {
+        if (adopcion?.Visitas == null || !adopcion.Visitas.Any())
+        {
+            var output = adopcion?.FechaAdopcion != null ? adopcion.FechaAdopcion.Value.AddMonths(1) : (DateTime?)null;
+            return output;
+        }
+
+        var ultimaVisita = adopcion.Visitas.OrderByDescending(v => v.FechaVisita).FirstOrDefault();
+
+        if (ultimaVisita != null && (ultimaVisita.FechaVisita - adopcion.FechaAdopcion)?.TotalDays >= 90)
+        {
+            return DateTime.MinValue; // No más visitas
+        }
+
+        return ultimaVisita?.FechaVisita.Value.AddMonths(1);
+    }
+
+    private void OnRowSelect(Adopcion adopcion)
+    {
+        // Manejar la selección de fila si es necesario
+    }
+}

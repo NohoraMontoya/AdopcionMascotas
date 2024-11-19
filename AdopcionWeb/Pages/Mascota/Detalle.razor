@@ -1,0 +1,92 @@
+﻿@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Detalles</h3>
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Nombre</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.Nombre</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">FechaEncontrado</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.FechaEncontrado</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">FechaPosibleNacimiento</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.FechaPosibleNacimiento</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">TipoMascota</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.TipoMascota</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">PosiblesEnfermedades</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.PosiblesEnfermedades</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Raza</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.Raza</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Foto</RadzenText>
+                <RadzenImage Path="@mascota?.Foto" Style="width: 100px; height: 100px; border-radius: 50%;" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Caracteristicas</RadzenText>
+                <RadzenStack Gap="0" class="rz-text-truncate">
+                    <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@mascota.Caracteristicas</RadzenText>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private Mascota mascota = new();
+
+    [Parameter] public long Id { get; set; }
+
+    private async Task RefreshData()
+    {
+        mascota = await db.Mascotas.FindAsync(Id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshData();
+    }
+}

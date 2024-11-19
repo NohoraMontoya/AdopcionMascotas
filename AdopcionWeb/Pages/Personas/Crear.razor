@@ -1,0 +1,52 @@
+﻿@page "/CrearPersona"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Crear Persona</h3>
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;max-width: 600px;">
+    <RadzenStack>
+        <EditForm Model="persona" method="post" OnValidSubmit="CrearPersona">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <RadzenFieldset Text="Persona">
+                <RadzenStack>
+                    <RadzenFormField Text="Cedula" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@persona.Cedula" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Nombre" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="persona.Nombre" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Apellidos" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@persona.Apellidos" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Correo" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="persona.Correo" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Telefono" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@persona.Telefono" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Direccion" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="persona.Direccion" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="DescripcionHogar" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@persona.DescripcionHogar" />
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Crear Persona" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private Persona persona = new();
+
+    private async Task CrearPersona()
+    {
+        await db.Personas.AddAsync(persona);
+        db.SaveChanges();
+        persona = new();
+        dialogService.Close(true);
+    }
+}

@@ -1,0 +1,196 @@
+﻿@page "/diagramabarras"
+
+@using System.Globalization
+
+@inject AdopcionContext db
+
+<h4>Mascotas Registradas</h4>
+<RadzenChart>
+    <RadzenColumnSeries Data="@registros2023" CategoryProperty="Quarter" Title="2023 Perros" LineType="LineType.Dashed" ValueProperty="Perros">
+        <RadzenSeriesDataLabels Visible="true" />
+    </RadzenColumnSeries>
+    <RadzenColumnSeries Data="@registros2024" CategoryProperty="Quarter" Title="2024 Perros" LineType="LineType.Dashed" ValueProperty="Perros">
+        <RadzenSeriesDataLabels Visible="true" />
+    </RadzenColumnSeries>
+    <RadzenColumnSeries Data="@registros2023" CategoryProperty="Quarter" Title="2023 Gatos" LineType="LineType.Dashed" ValueProperty="Gatos">
+        <RadzenSeriesDataLabels Visible="true" />
+    </RadzenColumnSeries>
+    <RadzenColumnSeries Data="@registros2024" CategoryProperty="Quarter" Title="2024 Gatos" LineType="LineType.Dashed" ValueProperty="Gatos">
+        <RadzenSeriesDataLabels Visible="true" />
+    </RadzenColumnSeries>
+    <RadzenColumnOptions Radius="5" />
+    <RadzenValueAxis>
+        <RadzenGridLines Visible="true" />
+        <RadzenAxisTitle Text="# Cantidad" />
+    </RadzenValueAxis>
+</RadzenChart>
+@code {
+    DataItem2[] registros2023;
+    DataItem2[] registros2024;
+
+    private int primerTrimestrePerros2024;
+    private int segundoTrimestrePerros2024;
+    private int tercerTrimestrePerros2024;
+    private int cuartoTrimestrePerros2024;
+
+    private int primerTrimestreGatos2024;
+    private int segundoTrimestreGatos2024;
+    private int tercerTrimestreGatos2024;
+    private int cuartoTrimestreGatos2024;
+
+    private int primerTrimestrePerros2023;
+    private int segundoTrimestrePerros2023;
+    private int tercerTrimestrePerros2023;
+    private int cuartoTrimestrePerros2023;
+
+    private int primerTrimestreGatos2023;
+    private int segundoTrimestreGatos2023;
+    private int tercerTrimestreGatos2023;
+    private int cuartoTrimestreGatos2023;
+
+
+
+    class DataItem2
+    {
+        public string Quarter { get; set; }
+        public int Perros { get; set; }
+        public int Gatos { get; set; }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        primerTrimestrePerros2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 1, 1) && x.FechaEncontrado <= new DateTime(2024, 3, 31) && x.TipoMascota == "perro")
+            .Count();
+
+        segundoTrimestrePerros2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 4, 1) && x.FechaEncontrado <= new DateTime(2024, 6, 30) && x.TipoMascota == "perro")
+            .Count();
+
+        tercerTrimestrePerros2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 7, 1) && x.FechaEncontrado <= new DateTime(2024, 9, 30) && x.TipoMascota == "perro")
+            .Count();
+
+        cuartoTrimestrePerros2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 10, 1) && x.FechaEncontrado <= new DateTime(2024, 12, 31) && x.TipoMascota == "perro")
+            .Count();
+
+        primerTrimestreGatos2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 1, 1) && x.FechaEncontrado <= new DateTime(2024, 3, 31) && x.TipoMascota == "gato")
+            .Count();
+
+        segundoTrimestreGatos2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 4, 1) && x.FechaEncontrado <= new DateTime(2024, 6, 30) && x.TipoMascota == "gato")
+            .Count();
+
+        tercerTrimestreGatos2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 7, 1) && x.FechaEncontrado <= new DateTime(2024, 9, 30) && x.TipoMascota == "gato")
+            .Count();
+
+        cuartoTrimestreGatos2024 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2024, 10, 1) && x.FechaEncontrado <= new DateTime(2024, 12, 31) && x.TipoMascota == "gato")
+            .Count();
+
+
+        primerTrimestrePerros2023 = db.Mascotas
+           .Where(x => x.FechaEncontrado >= new DateTime(2023, 1, 1) && x.FechaEncontrado <= new DateTime(2023, 3, 31) && x.TipoMascota == "perro")
+           .Count();
+
+        segundoTrimestrePerros2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 4, 1) && x.FechaEncontrado <= new DateTime(2023, 6, 30) && x.TipoMascota == "perro")
+            .Count();
+
+        tercerTrimestrePerros2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 7, 1) && x.FechaEncontrado <= new DateTime(2023, 9, 30) && x.TipoMascota == "perro")
+            .Count();
+
+        cuartoTrimestrePerros2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 10, 1) && x.FechaEncontrado <= new DateTime(2023, 12, 31) && x.TipoMascota == "perro")
+            .Count();
+
+        primerTrimestreGatos2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 1, 1) && x.FechaEncontrado <= new DateTime(2023, 3, 31) && x.TipoMascota == "gato")
+            .Count();
+
+        segundoTrimestreGatos2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 4, 1) && x.FechaEncontrado <= new DateTime(2023, 6, 30) && x.TipoMascota == "gato")
+            .Count();
+
+        tercerTrimestreGatos2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 7, 1) && x.FechaEncontrado <= new DateTime(2023, 9, 30) && x.TipoMascota == "gato")
+            .Count();
+
+        cuartoTrimestreGatos2023 = db.Mascotas
+            .Where(x => x.FechaEncontrado >= new DateTime(2023, 10, 1) && x.FechaEncontrado <= new DateTime(2023, 12, 31) && x.TipoMascota == "gato")
+            .Count();
+
+        registros2024 = new DataItem2[] {
+            new DataItem2
+            {
+                Quarter = "Enero - Marzo",
+                Perros = primerTrimestrePerros2024,
+                Gatos = primerTrimestreGatos2024
+            },
+            new DataItem2
+            {
+                Quarter = "Abril - Junio",
+                Perros = segundoTrimestrePerros2024,
+                Gatos = segundoTrimestreGatos2024
+
+            },
+            new DataItem2
+            {
+                Quarter = "Julio - Septiembre",
+                Perros = tercerTrimestrePerros2024,
+                Gatos = tercerTrimestreGatos2024
+
+            },
+            new DataItem2
+            {
+                Quarter = "Octubre - Diciembre",
+                Perros = cuartoTrimestrePerros2024,
+                Gatos = cuartoTrimestreGatos2024
+            },
+    };
+
+        registros2023 = new DataItem2[] {
+        new DataItem2
+            {
+                Quarter = "Enero - Marzo",
+                Perros = primerTrimestrePerros2023,
+                Gatos = primerTrimestreGatos2023
+            },
+            new DataItem2
+            {
+                Quarter = "Abril - Junio",
+                Perros = segundoTrimestrePerros2023,
+                Gatos = segundoTrimestreGatos2023
+
+            },
+            new DataItem2
+            {
+                Quarter = "Julio - Septiembre",
+                Perros = tercerTrimestrePerros2023,
+                Gatos = tercerTrimestreGatos2023
+
+            },
+            new DataItem2
+            {
+                Quarter = "Octubre - Diciembre",
+                Perros = cuartoTrimestrePerros2023,
+                Gatos = cuartoTrimestreGatos2023
+            },
+    };
+    }
+
+    // string FormatAsUSD(object value)
+    // {
+    //     return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    // }
+
+    // List<SeriesColorRange> fillRange = new List<SeriesColorRange>()
+    // {
+    //     new SeriesColorRange() {Min = 0, Max = 275000, Color = "red"},
+    //     new SeriesColorRange() {Min = 275000, Max = 324000, Color = "orange"},
+    //     new SeriesColorRange() {Min = 324000, Max = 10000000, Color = "#06cd06"},
+    // };
+}

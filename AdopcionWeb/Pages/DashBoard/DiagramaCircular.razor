@@ -1,0 +1,40 @@
+﻿@inject AdopcionContext db
+
+<RadzenStack Style="width: 100%; max-width: 600px;" class="rz-border-right">
+    <RadzenChart>
+        <RadzenPieSeries Data="@revenue" Title="Mascota" CategoryProperty="TipoMascota" ValueProperty="Cantidad">
+            <RadzenSeriesDataLabels Visible="true" />
+        </RadzenPieSeries>
+    </RadzenChart>
+</RadzenStack>
+
+@code {
+    DataItem[] revenue;
+    private int totalMascotasPerros;
+    private int totalMascotasGatos;
+
+    class DataItem
+    {
+        public string? TipoMascota { get; set; }
+        public int Cantidad { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalMascotasPerros = await db.Mascotas.Where(x => x.TipoMascota == "perro").CountAsync();
+        totalMascotasGatos = await db.Mascotas.Where(x => x.TipoMascota == "gato").CountAsync();
+        revenue = new DataItem[] {
+            new DataItem
+            {
+                TipoMascota = "Perros",
+                Cantidad = totalMascotasPerros
+            },
+            new DataItem
+            {
+                TipoMascota = "Gatos",
+                Cantidad = totalMascotasGatos
+            },
+        };
+
+    }
+}

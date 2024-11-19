@@ -1,0 +1,109 @@
+﻿@page "/ActualizarAdopcion/{Id:long}"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Editar</h3>
+
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;max-width: 600px;">
+    <RadzenStack>
+        <EditForm Model="adopcionActualizada" method="post" OnValidSubmit="ActualizarAdopcion">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <RadzenFieldset Text="Adopcion">
+                <RadzenStack>
+                    <RadzenFormField Text="Persona" Variant="Variant.Outlined">
+                        <InputSelect id="documentId" @bind-Value="@adopcionActualizada.PersonaId" class="form-control">
+                            <option value="">Seleccionar Persona</option>
+                            @if (_personas is not null)
+                            {
+                                @foreach (var a in _personas)
+                                {
+                                    <option value="@a?.Id">@a?.Nombre - @a?.Apellidos</option>
+                                }
+                            }
+                        </InputSelect>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Mascota" Variant="Variant.Outlined">
+                        <InputSelect id="documentId" @bind-Value="@adopcionActualizada.MascotaId" class="form-control">
+                            <option value="">Seleccionar Mascota</option>
+                            @if (_mascotas is not null)
+                            {
+                                @foreach (var a in _mascotas)
+                                {
+                                    <option value="@a?.Id">@a?.Nombre - @a?.Caracteristicas</option>
+                                }
+                            }
+                        </InputSelect>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Fecha de Adopcion" Variant="Variant.Outlined">
+                        <RadzenDatePicker DateFormat="MM/dd/yyyy" @bind-Value=@adopcionActualizada.FechaAdopcion ShowCalendarWeek />
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Actualizar" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+
+
+
+@code {
+    private Adopcion adopcionActualizada = new();
+
+    int value = 1;
+    private long? idMascota;
+    IEnumerable<Persona?> _personas;
+    IEnumerable<Mascota?> _mascotas;
+
+    [Parameter] public long Id { get; set; }
+
+    private async Task ActualizarAdopcion()
+    {
+        var adopcion = await db.Adopciones.FindAsync(Id);
+
+        if (adopcion != null)
+        {
+            Console.WriteLine(idMascota);
+            Console.WriteLine(adopcionActualizada.MascotaId);
+            if (idMascota != adopcionActualizada.MascotaId)
+            {
+                var mascota = await db.Mascotas.FindAsync(idMascota);
+                var mascotaAdoptada = await db.Mascotas.FindAsync(adopcionActualizada.MascotaId);
+                mascota.EsAdopcion = false;
+
+                db.Entry(mascota).State = EntityState.Modified;
+
+                mascotaAdoptada.EsAdopcion = true;
+                db.Mascotas.Update(mascota);
+            }
+
+            adopcion.MascotaId = adopcionActualizada.MascotaId;
+            adopcion.PersonaId = adopcionActualizada.PersonaId;
+            adopcion.FechaAdopcion = adopcionActualizada.FechaAdopcion;
+            adopcion.FechaTerminoSeguimiento = adopcionActualizada.FechaTerminoSeguimiento;
+
+
+            db.Entry(adopcion).State = EntityState.Modified;
+
+            await db.SaveChangesAsync();
+        }
+        dialogService.Close(true);
+    }
+
+    private async Task RefreshData()
+    {
+        adopcionActualizada = await db.Adopciones.FindAsync(Id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshData();
+        var adopcion = await db.Adopciones.FindAsync(Id);
+        _personas = await db.Personas.Where(x => x.EsValido == true).ToListAsync();
+        _mascotas = await db.Mascotas.Where(x => x.EsAdopcion == false || x.Id == adopcion.MascotaId).ToListAsync();
+        idMascota = adopcion.MascotaId;
+    }
+}

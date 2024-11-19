@@ -1,0 +1,91 @@
+﻿@page "/ActualizarPersonas/{Id:long}"
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Editar</h3>
+
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <EditForm Model="personaActualizada" method="post" OnValidSubmit="ActualizarPersona">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <RadzenFieldset Text="persona">
+                <RadzenStack>
+                    <RadzenFormField Text="Cedula" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@personaActualizada.Cedula" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Nombre" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="personaActualizada.Nombre" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Apellidos" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@personaActualizada.Apellidos" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Correo" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="personaActualizada.Correo" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Telefono" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@personaActualizada.Telefono" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Direccion" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="personaActualizada.Direccion" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="DescripcionHogar" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@personaActualizada.DescripcionHogar" />
+                    </RadzenFormField>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="Es Valido?" Component="Esvalido" class="rz-ms-2" />
+                        <RadzenCheckBox @bind-Value=@personaActualizada.EsValido Name="Esvalido" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenFieldset>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Actualizar" ButtonType="ButtonType.Submit" class="mt-2" />
+        </EditForm>
+    </RadzenStack>
+</RadzenStack>
+
+
+
+
+@code {
+    private Persona personaActualizada = new();
+
+    [Parameter] public long Id { get; set; }
+
+    private async Task ActualizarPersona()
+    {
+        var persona = await db.Personas.FindAsync(Id);
+        if (persona != null)
+        {
+            // Actualiza los valores de la persona
+            persona.Cedula = personaActualizada.Cedula;
+            persona.Nombre = personaActualizada.Nombre;
+            persona.Apellidos = personaActualizada.Apellidos;
+            persona.Correo = personaActualizada.Correo;
+            persona.Telefono = personaActualizada.Telefono;
+            persona.Direccion = personaActualizada.Direccion;
+            persona.DescripcionHogar = personaActualizada.DescripcionHogar;
+            persona.EsValido = personaActualizada.EsValido;
+
+            // Marca la entidad como modificada
+            db.Entry(persona).State = EntityState.Modified;
+
+            // Guarda los cambios en la base de datos
+            await db.SaveChangesAsync();
+        }
+
+        // Cierra el diálogo después de actualizar
+        dialogService.Close(true);
+    }
+
+    private async Task RefreshData()
+    {
+        personaActualizada = await db.Personas.FindAsync(Id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshData();
+    }
+}

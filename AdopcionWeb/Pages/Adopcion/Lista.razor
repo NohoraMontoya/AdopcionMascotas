@@ -1,0 +1,230 @@
+﻿@page "/Adopciones"
+
+@inject AdopcionContext db
+@inject DialogService dialogService
+@inject IJSRuntime JSRuntime
+
+<div>
+    <RadzenButton Click="@OpenCreate" Icon="add_circle" ButtonStyle="ButtonStyle.Primary" />
+    <RadzenButton Click="@RefreshData" Icon="autorenew" ButtonStyle="ButtonStyle.Primary"></RadzenButton>
+</div>
+
+<h3 class="pt-2">Adopciones</h3>
+
+@if (adopciones is null)
+{
+    <p>Cargando ...</p>
+}
+else
+{
+    <RadzenDataGrid TItem="Adopcion"
+                    Data="@adopciones"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowColumnResize="true"
+                    AllowFiltering="true"
+                    ColumnWidth="200px">
+
+        <Columns>
+            <RadzenDataGridColumn TItem="Adopcion" Property="Id" Title="ID" Width="50px" />
+            <RadzenDataGridColumn TItem="Adopcion" Property="Mascota.Nombre" Title="Nombre Mascota" Width="150px" />
+            <RadzenDataGridColumn TItem="Adopcion" Property="Persona.Nombre" Title="Nombre Persona" Width="150px" />
+            <RadzenDataGridColumn TItem="Adopcion" Property="FechaAdopcion" Title="Fecha de Adopción" Width="150px" FormatString="{0:yyyy-MM-dd}" />
+            <RadzenDataGridColumn TItem="Adopcion" Property="FechaTerminoSeguimiento" Title="Fecha de Término de Seguimiento" Width="150px" FormatString="{0:yyyy-MM-dd}" />
+            <RadzenDataGridColumn TItem="Adopcion" Property="Id" Title="Opciones" Width="150px">
+                <Template>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                        <RadzenButton Click=@(args => OpenRead(context.Id)) Icon="privacy_tip" ButtonStyle="ButtonStyle.Info" />
+                        <RadzenButton Click=@(args => OpenUpdate(context.Id)) Icon="warning_amber" ButtonStyle="ButtonStyle.Warning" />
+                        <RadzenButton Click=@(args => OpenDelete(context.Id)) Icon="report" ButtonStyle="ButtonStyle.Danger" />
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+
+@code {
+    List<Adopcion>? adopciones;
+
+    private async Task RefreshData()
+    {
+        adopciones = null;
+        adopciones = await db.Adopciones.AsNoTracking()
+                   .Include(a => a.Mascota)
+                   .Include(a => a.Persona)
+                   .AsSplitQuery()
+                   .ToListAsync();
+    }
+    private async Task OpenRead(long id)
+    {
+        await dialogService.OpenAsync<Detalle>($"Detalles registro {id}",
+       new Dictionary<string, object>() { { "Id", id } },
+       new DialogOptions()
+               {
+                   Resizable = true,
+                   Draggable = true,
+                   Resize = OnResize,
+                   Drag = OnDrag,
+                   Width = Settings != null ? Settings.Width : "700px",
+                   Height = Settings != null ? Settings.Height : "512px",
+                   Left = Settings != null ? Settings.Left : null,
+                   Top = Settings != null ? Settings.Top : null
+               });
+
+        await SaveStateAsync();
+    }
+    private async Task OpenUpdate(long id)
+    {
+        await dialogService.OpenAsync<Actualizar>($"Editar registro {id}",
+       new Dictionary<string, object>() { { "Id", id } },
+       new DialogOptions()
+               {
+                   Resizable = true,
+                   Draggable = true,
+                   Resize = OnResize,
+                   Drag = OnDrag,
+                   Width = Settings != null ? Settings.Width : "700px",
+                   Height = Settings != null ? Settings.Height : "512px",
+                   Left = Settings != null ? Settings.Left : null,
+                   Top = Settings != null ? Settings.Top : null
+               });
+        await RefreshData();
+        await SaveStateAsync();
+    }
+    private async Task OpenDelete(long id)
+    {
+        Adopcion? adopcion = await db.Adopciones.FindAsync(id);
+        int? numeroVisitas = db.Visitas.Where(a => a.AdopcionId == adopcion.Id).Count();
+        var result = await dialogService.OpenAsync("Cuidado!", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <p>Confirmar Eliminación de ID: <b>@id</b>?</p>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+
+                @if(numeroVisitas is null || numeroVisitas == 0){
+                <RadzenButton Text="Aceptar" Click="() => ds.Close(true)" />
+                <RadzenButton Text="Cancelar" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            }else{
+                <p>No se puede eliminar porque tiene visitas asociadas </p>
+                <RadzenButton Text="Cancelar" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            }
+
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+        if (result is null)
+        {
+            return;
+        }
+        if (result)
+        {
+            db.Adopciones.Remove(adopcion);
+            db.SaveChanges();
+        }
+        await RefreshData();
+    }
+    public async Task OpenCreate()
+    {
+        await dialogService.OpenAsync<Crear> (
+                $"Crear Nuevo",
+               new Dictionary<string, object>(),
+               new DialogOptions()
+                   {
+                       Resizable = true,
+                       Draggable = true,
+                       Resize = OnResize,
+                       Drag = OnDrag,
+                       Width = Settings != null ? Settings.Width : "700px",
+                       Height = Settings != null ? Settings.Height : "512px",
+                       Left = Settings != null ? Settings.Left : null,
+                       Top = Settings != null ? Settings.Top : null
+                   });
+        await RefreshData();
+        await SaveStateAsync();
+    }
+
+    void OnDrag(System.Drawing.Point point)
+    {
+        JSRuntime.InvokeVoidAsync("eval", $"console.log('Dialog drag. Left:{point.X}, Top:{point.Y}')");
+
+        if (Settings == null)
+        {
+            Settings = new DialogSettings();
+        }
+
+        Settings.Left = $"{point.X}px";
+        Settings.Top = $"{point.Y}px";
+
+        InvokeAsync(SaveStateAsync);
+    }
+
+    DialogSettings _settings;
+    public DialogSettings Settings
+    {
+        get
+        {
+            return _settings;
+        }
+        set
+        {
+            if (_settings != value)
+            {
+                _settings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+
+        var result = await JSRuntime.InvokeAsync<string>("window.localStorage.getItem", "DialogSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _settings = JsonSerializer.Deserialize<DialogSettings>(result);
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+
+        await JSRuntime.InvokeVoidAsync("window.localStorage.setItem", "DialogSettings", JsonSerializer.Serialize<DialogSettings>(Settings));
+    }
+
+    public class DialogSettings
+    {
+        public string Left { get; set; }
+        public string Top { get; set; }
+        public string Width { get; set; }
+        public string Height { get; set; }
+    }
+
+    void OnResize(System.Drawing.Size size)
+    {
+        JSRuntime.InvokeVoidAsync("eval", $"console.log('Dialog resize. Width:{size.Width}, Height:{size.Height}')");
+
+        if (Settings == null)
+        {
+            Settings = new DialogSettings();
+        }
+
+        Settings.Width = $"{size.Width}px";
+        Settings.Height = $"{size.Height}px";
+
+        InvokeAsync(SaveStateAsync);
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshData();
+    }
+}

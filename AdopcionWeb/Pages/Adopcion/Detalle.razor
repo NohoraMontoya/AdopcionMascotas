@@ -1,0 +1,69 @@
+﻿@inject AdopcionContext db
+@inject DialogService dialogService
+
+<h3>Detalles de Adopción</h3>
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <RadzenRow>
+            <!-- Detalles de la Persona -->
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Nombre de la Persona</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@adopcion?.Persona?.Nombre</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Descripción del Hogar</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@adopcion.?Persona?.DescripcionHogar</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+
+        <!-- Detalles de la Mascota -->
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Nombre de la Mascota</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@adopcion?.Mascota?.Nombre</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">Tipo de Mascota</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">@adopcion?.Mascota?.TipoMascota</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private Adopcion adopcion = new();
+
+    [Parameter] public long Id { get; set; }
+
+    private async Task RefreshData()
+    {
+        adopcion = await db.Adopciones
+                           .Include(a => a.Persona)
+                           .Include(a => a.Mascota)
+                           .FirstOrDefaultAsync(a => a.Id == Id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshData();
+    }
+}
+

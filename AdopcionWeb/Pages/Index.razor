@@ -1,0 +1,90 @@
+﻿@page "/"
+@using System.Globalization
+
+@inject AdopcionContext db
+@inject DialogService dialogService
+
+
+<RadzenCard Style="padding: 1rem;">
+    <!-- Título de la empresa -->
+    <RadzenText TextStyle="TextStyle.H2">Adopciones Felices</RadzenText>
+    <RadzenStack Gap="2rem" Orientation="Orientation.Vertical" Style="margin-top: 2rem;">
+        <RadzenRow>
+            <RadzenColumn Size="6">
+                <RadzenCard Style="text-align: center;">
+                    <RadzenText Text="Adopciones Felices es una organización dedicada a conectar personas con mascotas en busca de un hogar. Nos enfocamos en brindar un proceso de adopción seguro y transparente, ayudando a cientos de animales a encontrar una familia amorosa." />
+                    <RadzenImage Path="Logo.png" Style="max-width:200px" AlternateText="community" />
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn Size="6">
+                <RadzenStack AlignItems="AlignItems.Center">
+                    <RadzenImage Path="Inicio.png" Style="max-width:300px" AlternateText="community" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <!-- Descripción de la empresa -->
+    </RadzenStack>
+
+    <RadzenStack Gap="2rem" Orientation="Orientation.Vertical" Style="margin-top: 2rem;">
+        <!-- Cuadro de estadísticas -->
+        <RadzenRow>
+            <!-- Tarjeta: Personas Inscritas -->
+            <RadzenColumn Size="3">
+                <RadzenCard Style="padding: 1.5rem; text-align: center;">
+                    <RadzenText Text="Personas Inscritas" TextStyle="TextStyle.DisplayH4" />
+                    <RadzenText TextStyle="TextStyle.H3">@totalPersonas</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <!-- Tarjeta: Mascotas Registradas -->
+            <RadzenColumn Size="3">
+                <RadzenCard Style="padding: 1.5rem; text-align: center;">
+                    <RadzenText Text="Mascotas Registradas" TextStyle="TextStyle.DisplayH4" />
+                    <RadzenText TextStyle="TextStyle.H3">@totalMascotas</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <!-- Tarjeta: Adopciones Realizadas -->
+            <RadzenColumn Size="3">
+                <RadzenCard Style="padding: 1.5rem; text-align: center;">
+                    <RadzenText Text="Adopciones Realizadas" TextStyle="TextStyle.DisplayH4" />
+                    <RadzenText TextStyle="TextStyle.H3">@totalAdopciones</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn Size="3">
+                <RadzenCard Style="padding: 1.5rem; text-align: center;">
+                    <RadzenText Text="Visitas Realizadas" TextStyle="TextStyle.DisplayH4" />
+                    <RadzenText TextStyle="TextStyle.H3">@totalVisitas</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <!-- Tarjeta: Personas Inscritas -->
+            <RadzenColumn Size="4 ">
+                <AdopcionWeb.Pages.DashBoard.DiagramaCircular />
+            </RadzenColumn>
+            <RadzenColumn Size="8">
+                <AdopcionWeb.Pages.DashBoard.DiagramaBarras />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    private int totalPersonas;
+    private int totalMascotas;
+    private int totalAdopciones;
+    private int totalVisitas;
+
+
+   
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalPersonas = await db.Personas.CountAsync();
+        totalMascotas = await db.Mascotas.CountAsync();
+        totalAdopciones = await db.Adopciones.CountAsync();
+        totalVisitas = await db.Visitas.CountAsync();
+    }
+
+}
